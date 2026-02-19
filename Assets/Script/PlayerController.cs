@@ -1,75 +1,132 @@
 ﻿using UnityEngine;
+using UnityEngine.Playables;
 using UnityEngine.SceneManagement;
 
 public class PlayerController : MonoBehaviour
 {
     public float speed = 5f;
+    public float jumpForce = 10f;
+
     private float moveInput;
-    private bool IsJump = false;
+    private bool facingRight = true;
+    private PlayerState currentState = PlayerState.Idle;
+
+    Animator animator;
+    Rigidbody2D rb;
+    CheackOverLap cheack;
+
+    private void Start()
+    {
+        animator = GetComponent<Animator>();
+        rb = GetComponent<Rigidbody2D>();
+        cheack = GetComponentInChildren<CheackOverLap>();
+    }
 
     void Update()
     {
         transform.Translate(Vector3.right * moveInput * speed * Time.deltaTime);
 
-        if(transform.position.y <= -10f)
-        {
+        if (transform.position.y <= -10f)
             RestartGame();
+
+        UpdateState();
+        HandleAnimationState();
+    }
+
+    // ========== State Management ==========
+
+    void UpdateState()
+    {
+        if (!cheack.Canjump)
+        {
+            // ถ้าความเร็วขึ้น = Jump, ถ้าความเร็วลง = Fall
+            if (rb.linearVelocity.y > 0.1f)
+                currentState = PlayerState.Jump;
+            else
+                currentState = PlayerState.Fall; // ✅ เปลี่ยนเป็น Fall ทันทีที่เริ่มตก
+        }
+        else if (moveInput != 0)
+        {
+            currentState = PlayerState.Run;
+        }
+        else
+        {
+            currentState = PlayerState.Idle;
         }
     }
 
-    // ฟังก์ชันสำหรับกดปุ่มค้างไว้ (เรียกใช้จาก UI Event Trigger)
+    void HandleAnimationState()
+    {
+        switch (currentState)
+        {
+            case PlayerState.Idle:
+                animator.SetBool("isMove", false);
+                animator.SetBool("isJump", false);
+                animator.SetBool("CanJump", true);
+                break;
+
+            case PlayerState.Run:
+                animator.SetBool("isMove", true);
+                animator.SetBool("isJump", false);
+                animator.SetBool("CanJump", true);
+                break;
+
+            case PlayerState.Jump:
+                animator.SetBool("isMove", false);
+                animator.SetBool("isJump", true);
+                animator.SetBool("CanJump", false);
+                break;
+
+            case PlayerState.Fall:
+                animator.SetBool("isMove", false);
+                animator.SetBool("isJump", false);
+                animator.SetBool("CanJump", false);
+                break;
+        }
+    }
+
+    // ========== Input / UI ==========
+
     public void Move(float direction)
     {
         moveInput = direction;
+
+        if (direction < 0 && facingRight)
+            Flip();
+        else if (direction > 0 && !facingRight)
+            Flip();
     }
 
-    // ฟังก์ชันเมื่อปล่อยปุ่ม
     public void StopMoving()
     {
         moveInput = 0;
     }
 
-    // ฟังก์ชันสำหรับปุ่มกระโดด
-    public float jumpForce = 10f; // ปรับความสูงของการกระโดดตรงนี้
-
     public void Jump()
     {
-        // เรียกใช้ Rigidbody2D ของตัวละครเพื่อใส่แรงส่งขึ้นไปข้างบน
-        if (IsJump)
+        if (cheack.Canjump && rb != null)
         {
-            Rigidbody2D rb = GetComponent<Rigidbody2D>();
-
-            if (rb != null)
-            {
-                // ใส่แรงกระโดด (Velocity Change)
-                rb.linearVelocity = new Vector2(rb.linearVelocity.x, jumpForce);
-            }
+            rb.linearVelocity = new Vector2(rb.linearVelocity.x, jumpForce);
+            currentState = PlayerState.Jump;
         }
     }
+
     private void OnCollisionEnter2D(Collision2D collision)
     {
-        // ถ้าสิ่งที่ชนมี Tag ชื่อว่า Obstacle
         if (collision.gameObject.CompareTag("Obstacle"))
-        {
             RestartGame();
-        }
-        if (collision.gameObject.CompareTag("Plantform"))
-        {
-            IsJump = true;
-        }
-    }
-    private void OnCollisionExit2D(Collision2D collision)
-    {
-        if (collision.gameObject.CompareTag("Plantform"))
-        {
-            IsJump = false;
-        }
     }
 
     void RestartGame()
     {
-        // สั่งให้โหลดฉากปัจจุบันใหม่ (เริ่มเกมใหม่)
         SceneManager.LoadScene(SceneManager.GetActiveScene().name);
     }
 
+    void Flip()
+    {
+        Vector3 currentScale = transform.localScale;
+        currentScale.x *= -1;
+        transform.localScale = currentScale;
+        facingRight = !facingRight;
+    }
 }
