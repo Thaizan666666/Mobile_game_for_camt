@@ -61,25 +61,25 @@ public class PlayerController : MonoBehaviour
         {
             case PlayerState.Idle:
                 animator.SetBool("isMove", false);
-                animator.SetBool("isJump", false);
+                animator.SetBool("isFall", false);
                 animator.SetBool("CanJump", true);
                 break;
 
             case PlayerState.Run:
                 animator.SetBool("isMove", true);
-                animator.SetBool("isJump", false);
+                animator.SetBool("isFall", false);
                 animator.SetBool("CanJump", true);
                 break;
 
             case PlayerState.Jump:
                 animator.SetBool("isMove", false);
-                animator.SetBool("isJump", true);
+                animator.SetBool("isFall", false);
                 animator.SetBool("CanJump", false);
                 break;
 
             case PlayerState.Fall:
                 animator.SetBool("isMove", false);
-                animator.SetBool("isJump", false);
+                animator.SetBool("isFall", true);
                 animator.SetBool("CanJump", false);
                 break;
         }
