@@ -10,12 +10,12 @@ TagManager:
   - Default
   - TransparentFX
   - Ignore Raycast
-  - 
+  - Platform
   - Water
   - UI
-  - 
-  - 
-  - 
+  - Particle
+  - Obstact
+  - Player
   - 
   - background
   - 

@@ -10,18 +10,19 @@ public class FlingTime : MonoBehaviour
     public float moveDistance = 5f;
 
     [Header("Times")]
-    public float waitTime = 1f;  // เวลารอก่อนเคลื่อนที่ครั้งถัดไป
+    public float waitTime = 1f;
 
     [Header("Custom Pattern")]
-    public bool[] movePattern = { true, false, true, false };  // true = ขึ้น/ขวา, false = ลง/ซ้าย
+    public bool[] movePattern = { true, false, true, false };
 
     [Header("Movement Direction")]
-    public bool isHorizontal = false;  // false = แนวตั้ง (Y), true = แนวนอน (X)
-    public bool invertDirection = false;  // สลับทิศทาง (ซ้าย/ขวา หรือ ลง/ขึ้น)
+    public bool isHorizontal = false;
+    public bool invertDirection = false;
 
-    private Vector3 firstPosition;   // ตำแหน่งแรก
-    private Vector3 secondPosition;  // ตำแหน่งที่สอง
+    private Vector3 firstPosition;
+    private Vector3 secondPosition;
     private Vector3 targetPosition;
+    private Vector3 initialObjectPosition;  // ✅ เก็บตำแหน่งเริ่มต้น
     private bool isMoving = false;
     private int currentIndex = 0;
     private float timer = 0f;
@@ -32,34 +33,38 @@ public class FlingTime : MonoBehaviour
     {
         if (targetObject != null)
         {
+            initialObjectPosition = targetObject.position;  // ✅ เก็บตำแหน่งเริ่มต้น
             firstPosition = targetObject.position;
 
             if (isHorizontal)
             {
-                // เคลื่อนที่แนวนอน (X)
                 if (invertDirection)
-                    secondPosition = firstPosition + Vector3.left * moveDistance;  // ซ้าย
+                    secondPosition = firstPosition + Vector3.left * moveDistance;
                 else
-                    secondPosition = firstPosition + Vector3.right * moveDistance; // ขวา
+                    secondPosition = firstPosition + Vector3.right * moveDistance;
             }
             else
             {
-                // เคลื่อนที่แนวตั้ง (Y)
                 if (invertDirection)
-                    secondPosition = firstPosition + Vector3.down * moveDistance;  // ลง
+                    secondPosition = firstPosition + Vector3.down * moveDistance;
                 else
-                    secondPosition = firstPosition + Vector3.up * moveDistance;    // ขึ้น
+                    secondPosition = firstPosition + Vector3.up * moveDistance;
             }
         }
         else
         {
             Debug.LogWarning("Target Object ยังไม่ได้กำหนด!");
         }
+
+        // ✅ Subscribe to Player Die Event
+        if (GameManager.Instance != null)
+        {
+            GameManager.Instance.OnPlayerDie.AddListener(ResetFling);
+        }
     }
 
     void Update()
     {
-        // เคลื่อนที่ Object
         if (isMoving && targetObject != null)
         {
             targetObject.position = Vector3.MoveTowards(
@@ -68,13 +73,11 @@ public class FlingTime : MonoBehaviour
                 moveSpeed * Time.deltaTime
             );
 
-            // ถึงเป้าหมายแล้ว
             if (Vector3.Distance(targetObject.position, targetPosition) < 0.01f)
             {
                 isMoving = false;
                 targetObject.position = targetPosition;
 
-                // เริ่มนับเวลาสำหรับรอบถัดไป
                 if (hasStarted && currentIndex < movePattern.Length)
                 {
                     isWaiting = true;
@@ -83,7 +86,6 @@ public class FlingTime : MonoBehaviour
             }
         }
 
-        // รอเวลาก่อนเคลื่อนที่ครั้งถัดไป
         if (isWaiting)
         {
             timer += Time.deltaTime;
@@ -140,6 +142,32 @@ public class FlingTime : MonoBehaviour
                 return moveToSecond ? "ลง" : "กลับ";
             else
                 return moveToSecond ? "ขึ้น" : "กลับ";
+        }
+    }
+
+    // ✅ ฟังก์ชัน Reset
+    public void ResetFling()
+    {
+        hasStarted = false;
+        isMoving = false;
+        isWaiting = false;
+        currentIndex = 0;
+        timer = 0f;
+
+        if (targetObject != null)
+        {
+            targetObject.position = initialObjectPosition;
+        }
+
+        Debug.Log("Reset Fling เรียบร้อย");
+    }
+
+    void OnDestroy()
+    {
+        // ✅ Unsubscribe เมื่อ Object ถูกทำลาย
+        if (GameManager.Instance != null)
+        {
+            GameManager.Instance.OnPlayerDie.RemoveListener(ResetFling);
         }
     }
 }

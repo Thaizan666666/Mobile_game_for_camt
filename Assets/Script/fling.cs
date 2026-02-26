@@ -61,7 +61,7 @@ public class Fling : MonoBehaviour
 
                 isMoving = true;
 
-            if (currentIndex < 3)
+            if (currentIndex < movePattern.Length-1)
             {
                 currentIndex = (currentIndex + 1);
             }
