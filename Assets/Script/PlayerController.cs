@@ -7,34 +7,55 @@ public class PlayerController : MonoBehaviour
 {
     public float speed = 5f;
     public float jumpForce = 10f;
-    private float moveInput;
+    private float keyboardInput;  // ✅ Input จาก Keyboard
+    private float uiInput;        // ✅ Input จาก UI
+    private float moveInput;      // ✅ Input รวม
     private bool facingRight = true;
     private PlayerState currentState = PlayerState.Idle;
     private Vector3 startPosition;
-    private bool isDead = false;  // ✅ เพิ่มตัวแปรเช็คว่าตายแล้วหรือยัง
+    private bool isDead = false;
 
     Animator animator;
     Rigidbody2D rb;
     CheackOverLap cheack;
-    SpriteRenderer spriteRenderer;  // ✅ เพิ่มเพื่อซ่อน Sprite
+    SpriteRenderer spriteRenderer;
 
     private void Start()
     {
         animator = GetComponent<Animator>();
         rb = GetComponent<Rigidbody2D>();
         cheack = GetComponentInChildren<CheackOverLap>();
-        spriteRenderer = GetComponent<SpriteRenderer>();  // ✅ เพิ่ม
+        spriteRenderer = GetComponent<SpriteRenderer>();
         startPosition = transform.position;
     }
 
     void Update()
     {
-        if (isDead) return;  // ✅ ถ้าตายแล้วไม่ให้ควบคุมได้
-        HandleKeyboardInput();
+        if (isDead) return;
+
+        // ✅ รับ Input จาก Keyboard
+        keyboardInput = Input.GetAxisRaw("Horizontal");
+
+        // ✅ รวม Input (UI มี Priority สูงกว่า)
+        moveInput = uiInput != 0 ? uiInput : keyboardInput;
+
+        // ✅ Flip ตัวละคร
+        if (moveInput < 0 && facingRight)
+            Flip();
+        else if (moveInput > 0 && !facingRight)
+            Flip();
+
+        // ✅ เคลื่อนที่
         transform.Translate(Vector3.right * moveInput * speed * Time.deltaTime);
 
         if (transform.position.y <= -10f)
             Die();
+
+        // ✅ กระโดดด้วย Spacebar
+        if (Input.GetKeyDown(KeyCode.Space))
+        {
+            Jump();
+        }
 
         UpdateState();
         HandleAnimationState();
@@ -86,25 +107,28 @@ public class PlayerController : MonoBehaviour
         }
     }
 
-    public void Move(float direction)
-    {
-        if (isDead) return;  // ✅ ถ้าตายแล้วไม่ให้เคลื่อนที่
+    // ========== UI Buttons ==========
 
-        moveInput = direction;
-        if (direction < 0 && facingRight)
-            Flip();
-        else if (direction > 0 && !facingRight)
-            Flip();
+    public void MoveLeft()
+    {
+        if (isDead) return;
+        uiInput = -1f;
+    }
+
+    public void MoveRight()
+    {
+        if (isDead) return;
+        uiInput = 1f;
     }
 
     public void StopMoving()
     {
-        moveInput = 0;
+        uiInput = 0f;
     }
 
     public void Jump()
     {
-        if (isDead) return;  // ✅ ถ้าตายแล้วไม่ให้กระโดด
+        if (isDead) return;
 
         if (cheack.Canjump && rb != null)
         {
@@ -122,31 +146,29 @@ public class PlayerController : MonoBehaviour
 
     void Die()
     {
-        if (isDead) return;  // ✅ ป้องกันเรียก Die() ซ้ำ
+        if (isDead) return;
         isDead = true;
 
-        // ✅ ซ่อน Player Sprite
         if (spriteRenderer != null)
             spriteRenderer.enabled = false;
 
-        // ✅ หยุดการเคลื่อนที่
         rb.linearVelocity = Vector2.zero;
         moveInput = 0;
+        uiInput = 0;
+        keyboardInput = 0;
 
-        // ✅ เก็บตำแหน่งที่ตาย
         Vector3 deathPosition = transform.position;
 
-        // ✅ เรียก GameManager พร้อมส่งตำแหน่ง
         if (GameManager.Instance != null)
         {
             GameManager.Instance.PlayerDied(deathPosition);
         }
+
         SoundManager.PlayDeath();
-        // ✅ Reset Objects
+
         foreach (var obj in FindObjectsByType<Respawnable>(FindObjectsSortMode.None))
             obj.ResetObject();
 
-        // ✅ Respawn Player (รอ Coroutine)
         StartCoroutine(RespawnAfterDelay());
     }
 
@@ -154,15 +176,18 @@ public class PlayerController : MonoBehaviour
     {
         yield return new WaitForSeconds(GameManager.Instance.deathDelayTime);
 
-        // ย้าย Player ไป Checkpoint
-        Vector3 respawn = CheckpointManager.Instance.GetRespawnPoint(startPosition);
+        Vector3 respawn = startPosition;
+
+        if (CheckpointManager.Instance != null)
+        {
+            respawn = CheckpointManager.Instance.GetRespawnPoint(startPosition);
+        }
+
         transform.position = respawn;
 
-        // Reset state
         isDead = false;
         currentState = PlayerState.Idle;
 
-        // แสดง Sprite อีกครั้ง
         if (spriteRenderer != null)
             spriteRenderer.enabled = true;
     }
@@ -173,26 +198,5 @@ public class PlayerController : MonoBehaviour
         currentScale.x *= -1;
         transform.localScale = currentScale;
         facingRight = !facingRight;
-    }
-
-    void HandleKeyboardInput()
-    {
-        // รับค่าจาก A/D หรือ Arrow Keys
-        float horizontalInput = Input.GetAxisRaw("Horizontal"); // A/D = -1/1, Arrow Left/Right = -1/1
-
-        if (horizontalInput != 0)
-        {
-            Move(horizontalInput);
-        }
-        else
-        {
-            StopMoving();
-        }
-
-        // กระโดดด้วย Spacebar
-        if (Input.GetKeyDown(KeyCode.Space))
-        {
-            Jump();
-        }
     }
 }

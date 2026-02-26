@@ -15,6 +15,7 @@ public class Fling : MonoBehaviour
     private Vector3 upPosition;
     private Vector3 downPosition;
     private Vector3 targetPosition;
+    private Vector3 initialObjectPosition;  // ✅ เก็บตำแหน่งเริ่มต้น
     private bool isMoving = false;
     private int currentIndex = 0;
 
@@ -22,17 +23,21 @@ public class Fling : MonoBehaviour
     {
         if (targetObject != null)
         {
+            initialObjectPosition = targetObject.position;  // ✅ บันทึกตำแหน่งเริ่มต้น
             downPosition = targetObject.position;
             upPosition = downPosition + Vector3.up * moveDistance;
-
-            // กำหนดตำแหน่งแรก
             targetPosition = movePattern[currentIndex] ? upPosition : downPosition;
+        }
+
+        // ✅ Subscribe to Player Die Event
+        if (GameManager.Instance != null)
+        {
+            GameManager.Instance.OnPlayerDie.AddListener(ResetFling);
         }
     }
 
     void Update()
     {
-
         if (isMoving && targetObject != null)
         {
             targetObject.position = Vector3.MoveTowards(
@@ -53,22 +58,38 @@ public class Fling : MonoBehaviour
     {
         if (other.CompareTag("Player") && !isMoving)
         {
+            bool shouldMoveUp = movePattern[currentIndex];
+            Debug.Log($"{currentIndex}");
+            targetPosition = shouldMoveUp ? upPosition : downPosition;
+            isMoving = true;
 
-                // กำหนดตำแหน่งตาม Pattern
-                bool shouldMoveUp = movePattern[currentIndex];
-                Debug.Log($"{currentIndex}");
-                targetPosition = shouldMoveUp ? upPosition : downPosition;
-
-                isMoving = true;
-
-            if (currentIndex < movePattern.Length-1)
+            if (currentIndex < movePattern.Length - 1)
             {
                 currentIndex = (currentIndex + 1);
             }
-            else
-            {
-                return;
-            }
+        }
+    }
+
+    // ✅ ฟังก์ชัน Reset
+    public void ResetFling()
+    {
+        isMoving = false;
+        currentIndex = 0;
+
+        if (targetObject != null)
+        {
+            targetObject.position = initialObjectPosition;
+        }
+
+        Debug.Log("Fling Reset เรียบร้อย");
+    }
+
+    void OnDestroy()
+    {
+        // ✅ Unsubscribe เมื่อ Object ถูกทำลาย
+        if (GameManager.Instance != null)
+        {
+            GameManager.Instance.OnPlayerDie.RemoveListener(ResetFling);
         }
     }
 }
