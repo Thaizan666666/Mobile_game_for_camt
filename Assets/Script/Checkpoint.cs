@@ -2,49 +2,30 @@
 
 public class Checkpoint : MonoBehaviour
 {
-    [Header("Visual Feedback")]
-    public Color inactiveColor = Color.white;
-    public Color activeColor = Color.yellow;
-
-    private bool activated = false;
     private SpriteRenderer sr;
+    private Color defaultColor;
 
     void Start()
     {
         sr = GetComponent<SpriteRenderer>();
-
-        if (sr != null)
-        {
-            sr.color = inactiveColor;
-        }
+        if (sr != null) defaultColor = sr.color;
     }
 
+    // ✅ ลบ activated flag ออก — ให้ Overlap ทุกครั้งอัปเดต Checkpoint ล่าสุดเสมอ
     private void OnTriggerEnter2D(Collider2D other)
     {
-        if (activated) return;
+        if (!other.CompareTag("Player")) return;
 
-        if (other.CompareTag("Player"))
-        {
-            activated = true;
-            CheckpointManager.Instance.SetCheckpoint(transform.position);
+        CheckpointManager.Instance.SetCheckpoint(transform.position);
 
-            // เปลี่ยนสีเป็น active
-            if (sr != null)
-            {
-                sr.color = activeColor;
-            }
-
-            Debug.Log($"Checkpoint activated at {transform.position}");
-        }
+        if (sr != null) sr.color = Color.yellow;
     }
 
-    // ✅ ฟังก์ชันสำหรับ Reset Checkpoint (ถ้าต้องการ)
-    public void ResetCheckpoint()
+    private void OnTriggerExit2D(Collider2D other)
     {
-        activated = false;
-        if (sr != null)
-        {
-            sr.color = inactiveColor;
-        }
+        if (!other.CompareTag("Player")) return;
+
+        // ✅ คืนสีเดิมเมื่อออกจาก Checkpoint
+        if (sr != null) sr.color = defaultColor;
     }
 }

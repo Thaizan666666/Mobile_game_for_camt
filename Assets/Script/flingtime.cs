@@ -167,7 +167,7 @@ public class FlingTime : MonoBehaviour
         // ✅ Unsubscribe เมื่อ Object ถูกทำลาย
         if (GameManager.Instance != null)
         {
-            GameManager.Instance.OnPlayerDie.RemoveListener(ResetFling);
+            GameManager.Instance.OnPlayerRespawn.RemoveListener(ResetFling);
         }
     }
 }

@@ -12,16 +12,15 @@ public class GameManager : MonoBehaviour
 
     [Header("Death Effect")]
     public GameObject deathParticlePrefab;
-    public float deathDelayTime = 2f;
+    public float deathDelayTime = 1f; // ✅ Delay 1 วิก่อนขึ้น UI
 
     public UnityEvent OnPlayerDie = new UnityEvent();
+    public UnityEvent OnPlayerRespawn = new UnityEvent();
 
     void Awake()
     {
         if (Instance == null)
-        {
             Instance = this;
-        }
         else
         {
             Destroy(gameObject);
@@ -29,62 +28,59 @@ public class GameManager : MonoBehaviour
         }
 
         if (deathPanel != null)
-        {
             deathPanel.SetActive(false);
-        }
     }
 
     public void PlayerDied(Vector3 deathPosition)
     {
-        Debug.Log("Player Died - Starting Death Sequence");
+        // ✅ หยุด Coroutine เก่าก่อนเสมอ ป้องกัน overlap
+        StopAllCoroutines();
 
-        // เรียก Event สำหรับ Reset Objects
         OnPlayerDie?.Invoke();
-
-        // เริ่ม Coroutine สำหรับ Death Sequence
         StartCoroutine(DeathSequence(deathPosition));
     }
 
     IEnumerator DeathSequence(Vector3 position)
     {
-        // ✅ สร้าง Particle Effect ที่ตำแหน่งที่ตาย
+        // ✅ ซ่อน UI ก่อนเสมอ (reset สถานะ)
+        if (deathPanel != null)
+            deathPanel.SetActive(false);
+
+        // ✅ Particle Effect
         if (deathParticlePrefab != null)
         {
             GameObject particle = Instantiate(deathParticlePrefab, position, Quaternion.identity);
             Destroy(particle, 5f);
         }
 
-        // ✅ ใช้ WaitForSecondsRealtime แทน WaitForSeconds
+        // ✅ Delay 1 วิก่อนแสดง UI
         yield return new WaitForSecondsRealtime(deathDelayTime);
 
         // ✅ แสดง Death UI
         if (deathPanel != null)
-        {
             deathPanel.SetActive(true);
-            Time.timeScale = 0f;  // หยุดเกม
-            Debug.Log("ACTIVE");
-        }
     }
 
-    public void RestartGame()
+    // ✅ เปลี่ยนจาก Restart → Respawn
+    public void Respawn()
     {
-        // ✅ ซ่อน Death Panel ก่อน Restart
         if (deathPanel != null)
-        {
             deathPanel.SetActive(false);
-        }
 
-        Time.timeScale = 1f;
-        SceneManager.LoadScene("InGame");
+        foreach (var obj in FindObjectsByType<Respawnable>(FindObjectsSortMode.None))
+            obj.ResetObject();
+
+        OnPlayerRespawn?.Invoke();
+
+        PlayerController player = FindFirstObjectByType<PlayerController>();
+        if (player != null)
+            player.Respawn();
     }
 
     public void LoadMainMenu()
     {
-        // ✅ ซ่อน Death Panel ก่อนกลับ Menu
         if (deathPanel != null)
-        {
             deathPanel.SetActive(false);
-        }
 
         Time.timeScale = 1f;
         SceneManager.LoadScene("Menu");

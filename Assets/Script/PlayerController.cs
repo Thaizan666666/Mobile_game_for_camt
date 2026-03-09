@@ -159,32 +159,19 @@ public class PlayerController : MonoBehaviour
 
         Vector3 deathPosition = transform.position;
 
-        if (GameManager.Instance != null)
-        {
-            GameManager.Instance.PlayerDied(deathPosition);
-        }
-
         SoundManager.PlayDeath();
 
-        foreach (var obj in FindObjectsByType<Respawnable>(FindObjectsSortMode.None))
-            obj.ResetObject();
-
-        StartCoroutine(RespawnAfterDelay());
+        if (GameManager.Instance != null)
+            GameManager.Instance.PlayerDied(deathPosition);
     }
-
-    IEnumerator RespawnAfterDelay()
+    public void Respawn()
     {
-        yield return new WaitForSeconds(GameManager.Instance.deathDelayTime);
-
         Vector3 respawn = startPosition;
 
         if (CheckpointManager.Instance != null)
-        {
             respawn = CheckpointManager.Instance.GetRespawnPoint(startPosition);
-        }
 
         transform.position = respawn;
-
         isDead = false;
         currentState = PlayerState.Idle;
 

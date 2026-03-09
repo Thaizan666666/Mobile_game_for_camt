@@ -25,7 +25,7 @@ public class Moveto : MonoBehaviour
         // ✅ Subscribe to Player Die Event
         if (GameManager.Instance != null)
         {
-            GameManager.Instance.OnPlayerDie.AddListener(ResetMoveto);
+            GameManager.Instance.OnPlayerRespawn.AddListener(ResetMoveto);
         }
     }
 
