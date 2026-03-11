@@ -80,6 +80,7 @@ public class GameManager : MonoBehaviour
 
     public void LoadMainMenu()
     {
+        SoundManager.StopAllLoops();
         if (deathPanel != null)
             deathPanel.SetActive(false);
 

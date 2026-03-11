@@ -143,7 +143,7 @@ public class PlayerController : MonoBehaviour
             Die();
     }
 
-    void Die()
+    public void Die()
     {
         if (isDead) return;
         isDead = true;
