@@ -1,10 +1,10 @@
 fileFormatVersion: 2
-guid: 92a5287ff2bbe6c49b5383bc5887a965
+guid: 45677a070a7d2a447a8c5c8b0dbebca7
 TextureImporter:
   internalIDToNameTable:
   - first:
-      213: -8017758223130461655
-    second: badbar_0
+      213: 7044563021175377470
+    second: seven_0
   externalObjects: {}
   serializedVersion: 13
   mipmaps:
@@ -126,13 +126,13 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: badbar_0
+      name: seven_0
       rect:
         serializedVersion: 2
-        x: 19
+        x: 9
         y: 0
-        width: 94
-        height: 128
+        width: 62
+        height: 90
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -141,8 +141,8 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 92a775f30633bb090800000000000000
-      internalID: -8017758223130461655
+      spriteID: e3ec20b7eb053c160800000000000000
+      internalID: 7044563021175377470
       vertices: []
       indices: 
       edges: []
@@ -161,7 +161,7 @@ TextureImporter:
     spriteCustomMetadata:
       entries: []
     nameFileIdTable:
-      badbar_0: -8017758223130461655
+      seven_0: 7044563021175377470
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

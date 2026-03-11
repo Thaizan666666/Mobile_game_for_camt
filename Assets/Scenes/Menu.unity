@@ -837,9 +837,9 @@ MonoBehaviour:
   MenuMusic: {fileID: 0}
   Win: {fileID: 8300000, guid: 20aa17f3eb695f244a71aad4c3c5713b, type: 3}
   Boss: {fileID: 8300000, guid: 5ade9f99ed73e7f41a2aab71a4c26428, type: 3}
-  musicVolume: 0.5
+  musicVolume: 0.13
   sfxVolume: 1
-  ambientVolume: 0.3
+  ambientVolume: 0.293
 --- !u!4 &1211224579
 Transform:
   m_ObjectHideFlags: 0

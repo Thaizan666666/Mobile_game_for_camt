@@ -28,7 +28,7 @@ public class Bullet : MonoBehaviour
 
         if (rb != null)
         {
-            rb.velocity = direction * speed;
+            rb.linearVelocity = direction * speed;
         }
 
         // ทำลายตัวเองหลังจากเวลาที่กำหนด
