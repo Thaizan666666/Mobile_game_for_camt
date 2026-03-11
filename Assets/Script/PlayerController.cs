@@ -56,7 +56,6 @@ public class PlayerController : MonoBehaviour
         {
             Jump();
         }
-
         UpdateState();
         HandleAnimationState();
     }

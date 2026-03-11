@@ -19,13 +19,14 @@ public class GameManager : MonoBehaviour
 
     void Awake()
     {
-        if (Instance == null)
-            Instance = this;
-        else
+        // ✅ ทุกครั้งที่โหลด Scene ให้สร้าง Instance ใหม่เสมอ
+        if (Instance != null && Instance != this)
         {
-            Destroy(gameObject);
-            return;
+            Destroy(Instance.gameObject); // ✅ ทำลาย Instance เก่า
+            Instance = null;
         }
+
+        Instance = this;
 
         if (deathPanel != null)
             deathPanel.SetActive(false);
@@ -84,5 +85,12 @@ public class GameManager : MonoBehaviour
 
         Time.timeScale = 1f;
         SceneManager.LoadScene("Menu");
+    }
+
+    void OnDestroy()
+    {
+        // ✅ เคลียร์ Instance เมื่อถูกทำลาย
+        if (Instance == this)
+            Instance = null;
     }
 }
