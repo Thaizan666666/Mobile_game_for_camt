@@ -59,7 +59,7 @@ public class FlingTime : MonoBehaviour
         // ✅ Subscribe to Player Die Event
         if (GameManager.Instance != null)
         {
-            GameManager.Instance.OnPlayerDie.AddListener(ResetFling);
+            GameManager.Instance.OnPlayerRespawn.AddListener(ResetFling);
         }
     }
 
