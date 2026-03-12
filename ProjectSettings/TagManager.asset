@@ -6,16 +6,17 @@ TagManager:
   tags:
   - Obstacle
   - Plantform
+  - Winner
   layers:
   - Default
   - TransparentFX
   - Ignore Raycast
-  - 
+  - Platform
   - Water
   - UI
-  - 
-  - 
-  - 
+  - Particle
+  - Obstact
+  - Player
   - 
   - background
   - 

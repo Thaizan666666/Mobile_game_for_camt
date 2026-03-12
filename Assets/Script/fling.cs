@@ -1,22 +1,38 @@
-using UnityEngine;
+﻿using UnityEngine;
 
-public class fling : MonoBehaviour
+public class Fling : MonoBehaviour
 {
     [Header("References")]
-    public Transform targetObject;  // The object that will move up
-    public float moveSpeed = 2f;    // Speed of upward movement
-    public float moveDistance = 5f; // How far up to move
+    public Transform targetObject;
 
+    [Header("Settings")]
+    public float moveSpeed = 2f;
+    public float moveDistance = 5f;
+
+    [Header("Custom Pattern")]
+    public bool[] movePattern = { true, false, true, false };  // true = ขึ้น, false = ลง
+
+    private Vector3 upPosition;
+    private Vector3 downPosition;
     private Vector3 targetPosition;
-    private Vector3 startPosition;
+    private Vector3 initialObjectPosition;  // ✅ เก็บตำแหน่งเริ่มต้น
     private bool isMoving = false;
+    private int currentIndex = 0;
 
     void Start()
     {
         if (targetObject != null)
         {
-            startPosition = targetObject.position;
-            targetPosition = startPosition + Vector3.up * moveDistance;
+            initialObjectPosition = targetObject.position;  // ✅ บันทึกตำแหน่งเริ่มต้น
+            downPosition = targetObject.position;
+            upPosition = downPosition + Vector3.up * moveDistance;
+            targetPosition = movePattern[currentIndex] ? upPosition : downPosition;
+        }
+
+        // ✅ Subscribe to Player Die Event
+        if (GameManager.Instance != null)
+        {
+            GameManager.Instance.OnPlayerRespawn.AddListener(ResetFling);
         }
     }
 
@@ -30,19 +46,50 @@ public class fling : MonoBehaviour
                 moveSpeed * Time.deltaTime
             );
 
-            // Stop when reached
             if (Vector3.Distance(targetObject.position, targetPosition) < 0.01f)
             {
                 isMoving = false;
+                targetObject.position = targetPosition;
             }
         }
     }
 
     void OnTriggerEnter2D(Collider2D other)
     {
-        if (other.CompareTag("Player"))
+        if (other.CompareTag("Player") && !isMoving)
         {
+            bool shouldMoveUp = movePattern[currentIndex];
+            Debug.Log($"{currentIndex}");
+            targetPosition = shouldMoveUp ? upPosition : downPosition;
             isMoving = true;
+
+            if (currentIndex < movePattern.Length - 1)
+            {
+                currentIndex = (currentIndex + 1);
+            }
+        }
+    }
+
+    // ✅ ฟังก์ชัน Reset
+    public void ResetFling()
+    {
+        isMoving = false;
+        currentIndex = 0;
+
+        if (targetObject != null)
+        {
+            targetObject.position = initialObjectPosition;
+        }
+
+        Debug.Log("Fling Reset เรียบร้อย");
+    }
+
+    void OnDestroy()
+    {
+        // ✅ Unsubscribe เมื่อ Object ถูกทำลาย
+        if (GameManager.Instance != null)
+        {
+            GameManager.Instance.OnPlayerDie.RemoveListener(ResetFling);
         }
     }
 }
